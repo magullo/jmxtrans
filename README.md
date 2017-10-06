@@ -1,6 +1,7 @@
 ![jmxtranslogo](http://www.jmxtrans.org/assets/img/jmxtrans-logo.gif)
 
 [![Build Status](https://secure.travis-ci.org/jmxtrans/jmxtrans.png?branch=master)](http://travis-ci.org/jmxtrans/jmxtrans)
+[![Build status](https://ci.appveyor.com/api/projects/status/7g88sgeglsm7st17?svg=true)](https://ci.appveyor.com/project/gquintana/jmxtrans)
 [![Dependency Status](https://www.versioneye.com/user/projects/5421de9e3a8c2f2b8b000056/badge.svg?style=flat)](https://www.versioneye.com/user/projects/5421de9e3a8c2f2b8b000056)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jmxtrans/jmxtrans?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Maven site](https://img.shields.io/badge/Maven-site-blue.svg)](http://www.jmxtrans.org/jmxtrans/)
@@ -18,7 +19,7 @@ The core engine is very solid and there are writers for [Graphite](http://graphi
   * [Download a recent stable build](http://central.maven.org/maven2/org/jmxtrans/jmxtrans/) (or a [SNAPSHOT one](https://oss.sonatype.org/content/repositories/snapshots/org/jmxtrans/jmxtrans/))
   * See the [Wiki](https://github.com/jmxtrans/jmxtrans/wiki) for full documentation.
   * Join the [Google Group](http://groups.google.com/group/jmxtrans) if you have anything to discuss or [follow the commits](http://groups.google.com/group/jmxtrans-commits). Please don't email Jon directly because he just doesn't have enough time to answer every question individually.
-  * People are [talking - this is me! (skip to 21:45)](http://www.justin.tv/kctv88/b/290736874) and [talking](http://www.slideshare.net/cyrille.leclerc/paris-devops-monitoring-and-feature-toggle-pattern-with-jmx) and [talking (skip to 34:40)](http://www.justin.tv/kctv88/b/288229232) and [(french)](http://www.slideshare.net/henri.gomez/devops-retour-dexprience-marsjug-du-29-juin-2011 taking) about it.
+  * People are [talking - this is me! (skip to 21:45)](http://www.justin.tv/kctv88/b/290736874) and [talking](http://www.slideshare.net/cyrille.leclerc/paris-devops-monitoring-and-feature-toggle-pattern-with-jmx) and [talking (skip to 34:40)](http://www.justin.tv/kctv88/b/288229232) and [(french talking)](http://www.slideshare.net/henri.gomez/devops-retour-dexprience-marsjug-du-29-juin-2011) about it.
   * If you are seeing duplication of output data, look for 'typeNames' in the documentation.
   * If you like this project, please tell your friends, blog & tweet. I'd really love your help getting more publicity.
 
