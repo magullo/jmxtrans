@@ -20,34 +20,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.googlecode.jmxtrans.model.results;
+package com.googlecode.jmxtrans.executors;
 
-import javax.annotation.Nullable;
-import java.math.BigDecimal;
+import com.googlecode.jmxtrans.model.Server;
+import com.googlecode.jmxtrans.monitoring.ManagedThreadPoolExecutor;
 
-public class CPrecisionValueTransformer implements ValueTransformer {
+import javax.management.MalformedObjectNameException;
+import java.util.Collection;
+import java.util.concurrent.ThreadPoolExecutor;
 
-	private static final BigDecimal C_PRECISION = new BigDecimal("1E-308");
-
-	@Nullable
-	@Override
-	public Object apply(Object input) {
-		if (input == null) return null;
-		if (!Number.class.isAssignableFrom(input.getClass())) return input;
-
-		if (Double.isNaN(((Number) input).doubleValue())) {
-			return null;
-		}
-
-		if (Double.isInfinite(((Number) input).doubleValue())) {
-			return null;
-		}
-
-		BigDecimal inputNumber = new BigDecimal(input.toString());
-
-		if (inputNumber.abs().compareTo(C_PRECISION) < 0) return 0;
-
-		return input;
-	}
-
+public interface ExecutorRepository {
+	void put(Server server) throws MalformedObjectNameException;
+	Collection<ThreadPoolExecutor> getExecutors();
+	ThreadPoolExecutor getExecutor(Server server);
+	Collection<ManagedThreadPoolExecutor> getMBeans();
 }
+

@@ -20,34 +20,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.googlecode.jmxtrans.model.results;
+package com.googlecode.jmxtrans.model;
 
-import javax.annotation.Nullable;
-import java.math.BigDecimal;
+import javax.rmi.ssl.SslRMIClientSocketFactory;
+import java.io.IOException;
+import java.net.Socket;
+import java.rmi.server.RMIClientSocketFactory;
+import java.rmi.server.RMISocketFactory;
 
-public class CPrecisionValueTransformer implements ValueTransformer {
+public class JmxTransRMIClientSocketFactory implements RMIClientSocketFactory {
+	private final int timeoutMillis;
+	private RMIClientSocketFactory rmiClientSocketFactory;
 
-	private static final BigDecimal C_PRECISION = new BigDecimal("1E-308");
-
-	@Nullable
-	@Override
-	public Object apply(Object input) {
-		if (input == null) return null;
-		if (!Number.class.isAssignableFrom(input.getClass())) return input;
-
-		if (Double.isNaN(((Number) input).doubleValue())) {
-			return null;
-		}
-
-		if (Double.isInfinite(((Number) input).doubleValue())) {
-			return null;
-		}
-
-		BigDecimal inputNumber = new BigDecimal(input.toString());
-
-		if (inputNumber.abs().compareTo(C_PRECISION) < 0) return 0;
-
-		return input;
+	public JmxTransRMIClientSocketFactory(int timeoutMillis, boolean ssl){
+		this.timeoutMillis = timeoutMillis;
+		this.rmiClientSocketFactory = ssl
+				? new SslRMIClientSocketFactory()
+				: RMISocketFactory.getDefaultSocketFactory();
 	}
 
+	@Override
+	public Socket createSocket(String host, int port) throws IOException {
+		Socket socket = rmiClientSocketFactory.createSocket(host, port);
+		socket.setSoTimeout( timeoutMillis );
+		socket.setSoLinger( false, 0 );
+		return socket;
+	}
 }
