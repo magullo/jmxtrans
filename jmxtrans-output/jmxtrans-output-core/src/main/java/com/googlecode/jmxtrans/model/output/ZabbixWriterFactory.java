@@ -22,13 +22,12 @@
  */
 package com.googlecode.jmxtrans.model.output;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonFactory;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.jmxtrans.model.OutputWriterFactory;
 import com.googlecode.jmxtrans.model.output.support.ResultTransformerOutputWriter;
 import com.googlecode.jmxtrans.model.output.support.TcpOutputWriterBuilder;
-import com.googlecode.jmxtrans.model.output.support.UdpOutputWriterBuilder;
 import com.googlecode.jmxtrans.model.output.support.WriterPoolOutputWriter;
 import com.googlecode.jmxtrans.model.output.support.pool.FlushStrategy;
 import lombok.EqualsAndHashCode;
@@ -45,90 +44,50 @@ import static com.googlecode.jmxtrans.model.output.support.pool.FlushStrategyUti
 
 /**
  * This low latency and thread safe output writer sends data to a host/port combination
- * in the Graphite format.
+ * in the Zabbix Sender format.
  *
- * @see <a href="http://graphite.wikidot.com/getting-your-data-into-graphite">Getting your data into Graphite</a>
+ * @see <a href="https://www.zabbix.org/wiki/Docs/protocols#Zabbix_protocols">Zabbix sender 2.0 protocol</a>
  */
 @ThreadSafe
 @EqualsAndHashCode
 @ToString
-public class GraphiteWriterFactory implements OutputWriterFactory {
-
-	private static final String DEFAULT_ROOT_PREFIX = "servers";
-	private static final String DEFAULT_PROTOCOL = "tcp";
-
-	@Nonnull private final String rootPrefix;
-	@Nonnull private final InetSocketAddress graphiteServer;
+public class ZabbixWriterFactory implements OutputWriterFactory {
+	@Nonnull private final InetSocketAddress zabbixServer;
 	@Nonnull private final ImmutableList<String> typeNames;
 	private final boolean booleanAsNumber;
 	@Nonnull private final FlushStrategy flushStrategy;
 	private final int poolSize;
-	private final int socketTimeoutMs;
-	private final Integer poolClaimTimeoutSeconds;
-	private final int socketExpirationMs;
 
-	/**
-	 * protocol to use to send metrics to graphite server.
-	 * Default to "tcp". Possible values: "udp" or omit the value to use tcp protocol.
-	 */
-	private final String protocol;
-
-	@JsonCreator
-	public GraphiteWriterFactory(
+	public ZabbixWriterFactory(
 			@JsonProperty("typeNames") ImmutableList<String> typeNames,
 			@JsonProperty("booleanAsNumber") boolean booleanAsNumber,
-			@JsonProperty("rootPrefix") String rootPrefix,
 			@JsonProperty("host") String host,
 			@JsonProperty("port") Integer port,
 			@JsonProperty("flushStrategy") String flushStrategy,
 			@JsonProperty("flushDelayInSeconds") Integer flushDelayInSeconds,
-			@JsonProperty("poolSize") Integer poolSize,
-			@JsonProperty("socketTimeoutMs") Integer socketTimeoutMs,
-			@JsonProperty("poolClaimTimeoutSeconds") Integer poolClaimTimeoutSeconds,
-			@JsonProperty("protocol") String protocol,
-			@JsonProperty("socketExpirationMs") Integer socketExpirationMs) {
-
+			@JsonProperty("poolSize") Integer poolSize) {
 		this.typeNames = typeNames;
 		this.booleanAsNumber = booleanAsNumber;
-		this.rootPrefix = firstNonNull(rootPrefix, DEFAULT_ROOT_PREFIX);
-
-		this.graphiteServer = new InetSocketAddress(
+		this.zabbixServer = new InetSocketAddress(
 				checkNotNull(host, "Host cannot be null."),
 				checkNotNull(port, "Port cannot be null."));
 		this.flushStrategy = createFlushStrategy(flushStrategy, flushDelayInSeconds);
 		this.poolSize = firstNonNull(poolSize, 1);
-		this.socketTimeoutMs = firstNonNull(socketTimeoutMs, 200);
-		this.poolClaimTimeoutSeconds = firstNonNull(poolClaimTimeoutSeconds, 1);
-		this.protocol = firstNonNull(protocol, DEFAULT_PROTOCOL);
-		this.socketExpirationMs = firstNonNull(socketExpirationMs, 0);
 	}
 
 	@Override
-	public ResultTransformerOutputWriter<WriterPoolOutputWriter<GraphiteWriter2>> create() {
-
-		WriterPoolOutputWriter<GraphiteWriter2> writerPoolOutputWriter;
-		// check if we want to use udp protocol or fallback on default tcp protocol
-		if ("udp".equals(this.protocol)) {
-			writerPoolOutputWriter = UdpOutputWriterBuilder.builder(graphiteServer, new GraphiteWriter2(typeNames, rootPrefix))
-					.setCharset(UTF_8)
-					.setFlushStrategy(flushStrategy)
-					.setPoolSize(poolSize)
-					.setPoolClaimTimeoutSeconds(poolClaimTimeoutSeconds)
-					.build();
-		} else {
-			writerPoolOutputWriter = TcpOutputWriterBuilder.builder(graphiteServer, new GraphiteWriter2(typeNames, rootPrefix))
-					.setCharset(UTF_8)
-					.setFlushStrategy(flushStrategy)
-					.setPoolSize(poolSize)
-					.setSocketTimeoutMillis(socketTimeoutMs)
-					.setPoolClaimTimeoutSeconds(poolClaimTimeoutSeconds)
-					.setSocketExpirationMs(socketExpirationMs)
-					.build();
-
-		}
-
-		return ResultTransformerOutputWriter.booleanToNumber(booleanAsNumber, writerPoolOutputWriter);
-
+	public ResultTransformerOutputWriter<WriterPoolOutputWriter<ZabbixWriter>> create() {
+		return ResultTransformerOutputWriter.booleanToNumber(
+				booleanAsNumber,
+				TcpOutputWriterBuilder.builder(
+						zabbixServer,
+						new ZabbixWriter(new JsonFactory(), typeNames)
+				)
+						.setCharset(UTF_8)
+						.setFlushStrategy(flushStrategy)
+						.setPoolSize(poolSize)
+						.build()
+		);
 	}
 
 }
