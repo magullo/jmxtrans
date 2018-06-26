@@ -34,7 +34,7 @@
 
 	<groupId>org.jmxtrans</groupId>
 	<artifactId>jmxtrans-parent</artifactId>
-	<version>268-SNAPSHOT</version>
+	<version>270-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>JmxTrans - parent project</name>
 	<description>JMX metrics exporter</description>
@@ -285,16 +285,6 @@
 				<version>1</version>
 			</dependency>
 			<dependency>
-				<groupId>log4j</groupId>
-				<artifactId>apache-log4j-extras</artifactId>
-				<version>1.2.17</version>
-			</dependency>
-			<dependency>
-				<groupId>log4j</groupId>
-				<artifactId>log4j</artifactId>
-				<version>1.2.17</version>
-			</dependency>
-			<dependency>
 				<groupId>net.sf.jpathwatch</groupId>
 				<artifactId>jpathwatch</artifactId>
 				<version>0.95</version>
@@ -313,6 +303,12 @@
 				<groupId>org.apache.kafka</groupId>
 				<artifactId>kafka_2.11</artifactId>
 				<version>${kafka.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-log4j12</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.velocity</groupId>
@@ -323,6 +319,16 @@
 				<groupId>org.apache.zookeeper</groupId>
 				<artifactId>zookeeper</artifactId>
 				<version>3.4.10</version>
+				<exclusions>
+					<exclusion>
+						<groupId>log4j</groupId>
+						<artifactId>log4j</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-log4j12</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.codehaus.mojo</groupId>
@@ -413,7 +419,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.jmxtrans</groupId>
-				<artifactId>jmxtrans-output-log4j</artifactId>
+				<artifactId>jmxtrans-output-logback</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -436,7 +442,7 @@
 				<artifactId>quartz</artifactId>
 				<version>1.8.6</version>
 			</dependency>
-			<dependency>
+			<dependency><!-- quartz and jmxtrans-output-log4j depend on log4j -->
 				<groupId>org.slf4j</groupId>
 				<artifactId>log4j-over-slf4j</artifactId>
 				<version>${slf4j.version}</version>
@@ -447,30 +453,11 @@
 				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-simple</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.google.code.findbugs</groupId>
-				<artifactId>annotations</artifactId>
-				<version>3.0.1u2</version>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-annotations</artifactId>
+				<version>3.1.2</version>
 				<scope>provided</scope>
-				<exclusions>
-					<exclusion>
-						<groupId>com.google.code.findbugs</groupId>
-						<artifactId>jsr305</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>net.jcip</groupId>
-						<artifactId>jcip-annotations</artifactId>
-					</exclusion>
-				</exclusions>
+				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.projectlombok</groupId>
@@ -586,8 +573,13 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -622,6 +614,22 @@
 					</executions>
 				</plugin>
 				<plugin>
+					<groupId>com.github.spotbugs</groupId>
+					<artifactId>spotbugs-maven-plugin</artifactId>
+					<version>3.1.3</version>
+					<configuration>
+						<effort>Max</effort>
+						<threshold>Default</threshold>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
 					<groupId>com.mycila</groupId>
 					<artifactId>license-maven-plugin</artifactId>
 					<version>3.0</version>
@@ -640,6 +648,8 @@
 							<exclude>**/pitest-history.xml</exclude>
 							<exclude>*.bak</exclude>
 							<exclude>.puml</exclude>
+							<exclude>mvnw.cmd</exclude>
+							<exclude>**/maven-wrapper.properties</exclude>
 						</excludes>
 					</configuration>
 					<executions>
@@ -947,6 +957,25 @@
 					</configuration>
 				</plugin>
 				<plugin>
+					<groupId>org.basepom.maven</groupId>
+					<artifactId>duplicate-finder-maven-plugin</artifactId>
+					<version>1.3.0</version>
+					<configuration>
+						<failBuildInCaseOfDifferentContentConflict>true</failBuildInCaseOfDifferentContentConflict>
+						<failBuildInCaseOfEqualContentConflict>false</failBuildInCaseOfEqualContentConflict>
+						<failBuildInCaseOfConflict>false</failBuildInCaseOfConflict>
+					</configuration>
+					<executions>
+						<execution>
+							<id>duplicate-classes-check</id>
+							<goals>
+								<goal>check</goal>
+							</goals>
+							<phase>verify</phase>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>animal-sniffer-maven-plugin</artifactId>
 					<version>${animal-sniffer.version}</version>
@@ -1001,22 +1030,6 @@
 								<goal>check</goal>
 							</goals>
 							<phase>verify</phase>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>findbugs-maven-plugin</artifactId>
-					<version>3.0.5</version>
-					<configuration>
-						<effort>Max</effort>
-						<threshold>Default</threshold>
-					</configuration>
-					<executions>
-						<execution>
-							<goals>
-								<goal>check</goal>
-							</goals>
 						</execution>
 					</executions>
 				</plugin>
@@ -1078,6 +1091,10 @@
 				<artifactId>sortpom-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
 			</plugin>
@@ -1110,16 +1127,16 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 			</plugin>
 			<plugin>
+				<groupId>org.basepom.maven</groupId>
+				<artifactId>duplicate-finder-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>animal-sniffer-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>cobertura-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
@@ -1130,6 +1147,15 @@
 
 	<reporting>
 		<plugins>
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>3.1.3</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>Exp</threshold>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
@@ -1201,15 +1227,6 @@
 						</reports>
 					</reportSet>
 				</reportSets>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.3</version>
-				<configuration>
-					<effort>Max</effort>
-					<threshold>Exp</threshold>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
